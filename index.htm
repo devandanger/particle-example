@@ -1,0 +1,121 @@
+<html>
+<head>
+</head>
+<body>
+	<canvas id="canvas" width="500" height="500"></canvas>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+	<script>
+	$(document).ready(function(){
+
+var mouseX = -1;
+var mouseY = -1;
+
+//Initializing the canvas
+var canvas = document.getElementById("canvas");
+canvas.onmousemove = function onMouseOver(e) {
+	mouseX = e.clientX - canvas.clientLeft;
+	mouseY = e.clientY - canvas.clientTop;
+	//console.log("MouseX " + mouseX);
+	//console.log("MouseY " + mouseY);
+}
+
+canvas.onmouseout = function onMouseOut(e) {
+	mouseX = -1;
+	mouseY = -1;
+}
+
+var ctx = canvas.getContext("2d");
+
+//Canvas dimensions
+var W = 500; var H = 500;
+
+//Lets create an array of particles
+var particles = [];
+for(var i = 0; i < 200; i++)
+{
+	particles.push(new create_particle());
+}
+
+//create these particle and maybe parameterize them here with more info.
+function create_particle()
+{
+	//Random position on the canvas
+	this.x = Math.random()*W;
+	this.y = Math.random()*H;
+	
+	this.vx = Math.random()*20-10;
+	this.vy = Math.random()*20-10;
+	
+	//Random colors
+	var r = Math.random()*255>>0;
+	var g = Math.random()*255>>0;
+	var b = Math.random()*255>>0;
+
+
+	this.color = "rgba("+r+", "+g+", "+b+", 0.5)";
+	
+	//Random size
+	this.radius = Math.random()*20+10;
+}
+
+var x = 100; var y = 100;
+
+function isCursorWithinCircle(x, y, r) {
+	if(mouseX == -1)
+		return false;
+
+	var distSqr = Math.pow(x - mouseX, 2) + Math.pow(y - mouseY, 2);
+
+	if(distSqr < r * r) {
+		return true;
+	}
+	return false;
+}
+
+function draw()
+{
+
+	//Line of code below is very important
+	ctx.globalCompositeOperation = "source-over";
+	ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+	ctx.fillRect(0, 0, W, H);
+	
+	//also very important
+	ctx.globalCompositeOperation = "lighter";
+	
+	for(var t = 0; t < particles.length; t++)
+	{
+		var p = particles[t];
+		
+		ctx.beginPath();
+		
+		//Time for some colors
+		var gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+		gradient.addColorStop(0, "white");
+		gradient.addColorStop(0.4, "white");
+		gradient.addColorStop(0.4, p.color);
+		gradient.addColorStop(1, "black");
+		
+		ctx.fillStyle = gradient;
+		ctx.arc(p.x, p.y, p.radius, Math.PI*2, false);
+		ctx.fill();
+		
+		if(!isCursorWithinCircle(p.x, p.y, 50)) {
+			//Lets use the velocity now
+			p.x += p.vx;
+			p.y += p.vy;
+			
+			//To prevent the balls from moving out of the canvas
+			if(p.x < -50) p.x = W+50;
+			if(p.y < -50) p.y = H+50;
+			if(p.x > W+50) p.x = -50;
+			if(p.y > H+50) p.y = -50;
+		}
+	}
+}
+
+setInterval(draw, 33);
+});
+	</script>
+</body>
+</html>
